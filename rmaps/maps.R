@@ -5,49 +5,107 @@ library(WDI)
 library(rgdal)
 library(svglite)
 library(Cairo)
+library(graticule)
 
-#Use basic world map from maptools and project to winkel tripel
+source("slice_world.R")
 
+# Load world and remove Antarctica
 data("wrld_simpl")
-proj4string(wrld_simpl) <- CRS("+proj=longlat")
-winkel <- "+proj=wintri"
-countries_winkel <- spTransform(wrld_simpl, CRS(winkel))
-par(mar=c(0,0,0,0))
+wrld_simpl <- wrld_simpl[wrld_simpl@data$NAME != "Antarctica",]
 
-#get data on forest protected areas from WDI and join with map data on ISO code
-
+# Get data on forest protected areas from WDI and join with map data on ISO code
 forestdata <- WDI(country = "all", indicator = "ER.LND.PTLD.ZS", start = 2014, end = 2014)
 forestdata.o <- forestdata[match(wrld_simpl$ISO2,forestdata$iso2c),]
 
-
-
-#Colorbrewer Colors
-#ffeda0 <- light orange
-#feb24c <- medium orange
-#f03b20 <- dark orange
-
+# Define colors for choropleth
 findColors3 <- function(x) {
- if (!is.na(x)){
-     if (x < 5) {
-      col <- "#ffeda0"
-    } else if (x > 5 & x < 20) {
-      col <- "#feb24c"
-    } else if (x > 20) {
-      col <- "#f03b20"
-    } else {
-      col <- "black" #catch any screw ups
-    }
-    return(col)
- }
-  col <-"white" #shade nulls
-  return(col)
+  if (!is.na(x)){
+    if (x <= 5)               return("#ffeda0")
+    else if (x > 5 & x <= 20) return("#feb24c")
+    else if (x > 20)          return("#f03b20")
+    else                      return("black")
+  }
+  return("white") #shade nulls
 }
-
 ternaryColors <- sapply(forestdata.o$ER.LND.PTLD.ZS, findColors3)
 
-svg(filename="ER.LND.PTLD.ZS.svg", 
-    width=25, 
-    height=20, 
-    pointsize=12)
-plot(countries_winkel, col=ternaryColors, lwd=0.3)
+# Define our graticule (lines of lat/long)
+graticule_lons <- seq(-180, 180, 15)
+graticule_lats <- seq(-90, 90, 15)
+
+# Common settings
+width=17
+height=11
+bgcolor="white"
+
+################################################################################
+# Plot attempt #1 - Gall-Peters centered on 25 degrees W
+################################################################################
+
+proj <- "+proj=cea +lon_0=25w +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+wrld_tx <- slice_world(wrld_simpl, 155)
+wrld_tx <- spTransform(wrld_tx, CRS(proj))
+
+pdf("gall-peters-25w.pdf", width=width, height=height, bg=bgcolor)
+par(mai=c(0,0,0,0), oma=c(0,0,0,0)) #bltr
+plot(wrld_tx, col=ternaryColors, lwd=0.3)
+
+# Plot graticule, box and book spine, just so we can see how our projection looks
+plot(graticule(lons, lats, proj = proj), add=TRUE, col = "lightgray")
+box(col="red")
+abline(v=grconvertX(8.5*72, from = "device", to = "user"))
+dev.off()
+
+################################################################################
+# Plot attempt #1b - Squashed Gall-Peters centered on 25 degrees W
+################################################################################
+
+# Only difference is lat_ts=40 below instead of 45, changes aspect ratio slightly
+proj <- "+proj=cea +lon_0=25w +x_0=0 +y_0=0 +lat_ts=40 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+wrld_tx <- slice_world(wrld_simpl, 155)
+wrld_tx <- spTransform(wrld_tx, CRS(proj))
+
+pdf("gall-peters-40-25w.pdf", width=width, height=height, bg=bgcolor)
+par(mai=c(0,0,0,0), oma=c(0,0,0,0)) #bltr
+plot(wrld_tx, col=ternaryColors, lwd=0.3)
+
+# Plot graticule, box and book spine, just so we can see how our projection looks
+plot(graticule(lons, lats, proj = proj), add=TRUE, col = "lightgray")
+box(col="red")
+abline(v=grconvertX(8.5*72, from = "device", to = "user"))
+dev.off()
+
+################################################################################
+# Plot attempt #2 - Winkel-Tripel normally centered, with left margin
+################################################################################
+
+proj <- "+proj=wintri +lon_0=0w"
+wrld_tx <- spTransform(wrld_simpl, CRS(proj))
+
+pdf("winkel-tripel.pdf", width=width, height=height, bg=bgcolor)
+par(mai=c(0,1.75,0,0), oma=c(0,0,0,0)) #bltr
+plot(wrld_tx, col=ternaryColors, lwd=0.3)
+
+# Plot graticule, box and book spine, just so we can see how our projection looks
+plot(graticule(lons, lats, proj = proj), add=TRUE, col = "lightgray")
+box(col="red")
+abline(v=grconvertX(8.5*72, from = "device", to = "user"))
+dev.off()
+
+################################################################################
+# Plot attempt #3 - Winkel-Tripel centered on 25 deg W
+################################################################################
+
+proj <- "+proj=wintri +lon_0=25w"
+wrld_tx <- slice_world(wrld_simpl, 155)
+wrld_tx <- spTransform(wrld_tx, CRS(proj))
+
+pdf("winkel-tripel-25w.pdf", width=width, height=height, bg=bgcolor)
+par(mai=c(0,0,0,0), oma=c(0,0,0,0)) #bltr
+plot(wrld_tx, col=ternaryColors, lwd=0.3)
+
+# Plot graticule, box and book spine, just so we can see how our projection looks
+plot(graticule(lons, lats, proj = proj), add=TRUE, col = "lightgray")
+box(col="red")
+abline(v=grconvertX(8.5*72, from = "device", to = "user"))
 dev.off()

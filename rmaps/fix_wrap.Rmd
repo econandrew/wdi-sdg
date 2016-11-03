@@ -1,0 +1,56 @@
+---
+title: "Fixing wrapped country shapes"
+author: "Andrew Whitby"
+date: "2 November 2016"
+output: html_document
+---
+
+Most collections of country shapefiles are defined in latitude and longitude, centered on the Greenwich meridian, so that 180 degrees W is at the left edge and 180 degrees E is at the right edge. That works perfectly well if you plot in a coordinate system that is also centered on 0 degrees.
+
+For instance, the default longlat projection or a standard Winkel-Tripel
+```{r, message=FALSE, warning=FALSE, fig.width = 10, fig.height = 3}
+library(maptools)
+data("wrld_simpl")
+par(mfrow=c(1,2), mar=c(0,0,0,0), oma=c(0,0,0,0))
+
+plot(wrld_simpl, col="yellow")
+
+plot(spTransform(wrld_simpl, CRS("+proj=wintri +lon_0=0w")), col="yellow")
+```
+
+But sometimes you want to rotate a projection so that another longitude is centered, e.g. for an Americas- or Australia-centered map. If you try it, some of the country polygons break, as the left coordinates end up being larger than the right coordinates.This will typically happen to Russia, since it spans a lot of east-west space - but it can happen to any country that happens to cross your new antimeridian.
+```{r, message=FALSE, warning=FALSE, fig.width = 10, fig.height = 3}
+par(mfrow=c(1,2), mar=c(0,0,0,0), oma=c(0,0,0,0))
+
+plot(spTransform(wrld_simpl, CRS("+proj=cea +lat_ts=45 +lon_0=90w")), col="yellow")
+plot(spTransform(wrld_simpl, CRS("+proj=wintri +lon_0=130e")), col="yellow")
+```
+
+There may be a better solution to this problem (if you know it, [let me know!](https://andrewwhitby.com/)), but my hack is to slice the polygons that cross the antimeridian into two parts, so that each is rendered correctly. You can use the following function for this
+```{r, message=FALSE}
+library(sp)
+library(rgeos)
+
+slice_world <- function(sp, longitude) {
+  for (i in 1:nrow(sp)) {
+    target <- sp[i,]
+    line <- SpatialLines(list(Lines(list(Line(cbind(c(longitude,longitude),c(-90,90)))), ID="slice")), proj4string = target@proj4string)
+    slice <- gIntersection(target, line)
+    if (!is.null(slice)) {
+      buf <- gBuffer(slice, width = 0.001)  # create a very thin polygon around the breaks
+      new_target <- gDifference(target, buf) # split the countries 
+      new_target@polygons[1][[1]]@ID <- sp@polygons[i][[1]]@ID
+      sp@polygons[i] <- new_target@polygons
+    }
+  }
+  return(sp)
+}
+```
+
+For example
+```{r, message=FALSE, warning=FALSE, fig.width = 10, fig.height = 3}
+par(mfrow=c(1,2), mar=c(0,0,0,0), oma=c(0,0,0,0))
+
+plot(spTransform(slice_world(wrld_simpl, 90), CRS("+proj=cea +lat_ts=45 +lon_0=90w")), col="yellow")
+plot(spTransform(slice_world(wrld_simpl, -50), CRS("+proj=wintri +lon_0=130e")), col="yellow")
+```

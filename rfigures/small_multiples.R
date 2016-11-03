@@ -13,7 +13,7 @@ source('multiplot.r')
 # Global settings
 ################################################################################
 
-output_folder = "../output/"
+output_folder = "../outputs/"
 
 # Common settings
 width=17
@@ -23,7 +23,7 @@ bgcolor="white"
 show.box = F
 show.spine = F
 
-plot.device <- pdf # devSVG svg
+plot.device <- pdf # pdf devSVG svg
 plot.fn.ext <- '.pdf'
 
 ################################################################################
@@ -38,7 +38,7 @@ f_emp_sectors <- WDI(country = "all", indicator = c(
 ), start = 2000, end = 2015)
 
 # Drop regional aggregates and NAs
-is.region <- grepl("[0-9]|X[A-J,L-Z]|ZT|OE", f_emp_sectors$iso2c) #XK is Kosovo
+is.region <- grepl("[0-9]|X[A-J,L-Z]|ZJ|ZT|OE", f_emp_sectors$iso2c) #XK is Kosovo
 f_emp_sectors <- f_emp_sectors[!is.region & complete.cases(f_emp_sectors),]
 
 # Get most recent year

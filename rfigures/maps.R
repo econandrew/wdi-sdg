@@ -13,7 +13,7 @@ source("slice_world.R")
 # Global settings
 ################################################################################
 
-output_folder = "../output/"
+output_folder = "../outputs/"
 
 # Define our graticule (lines of lat/long)
 graticule_lons <- seq(-180, 180, 15)

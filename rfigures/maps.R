@@ -9,6 +9,32 @@ library(graticule)
 
 source("slice_world.R")
 
+################################################################################
+# Global settings
+################################################################################
+
+output_folder = "../output/"
+
+# Define our graticule (lines of lat/long)
+graticule_lons <- seq(-180, 180, 15)
+graticule_lats <- seq(-90, 90, 15)
+
+# Common settings
+width=17
+height=11
+bgcolor="white"
+
+show.graticule = F
+show.box = F
+show.spine = F
+
+plot.device <- svg
+plot.fn.ext <- '.svg'
+
+################################################################################
+# Setup
+################################################################################
+
 # Load world and remove Antarctica
 data("wrld_simpl")
 wrld_simpl <- wrld_simpl[wrld_simpl@data$NAME != "Antarctica",]
@@ -29,14 +55,14 @@ findColors3 <- function(x) {
 }
 ternaryColors <- sapply(forestdata.o$ER.LND.PTLD.ZS, findColors3)
 
-# Define our graticule (lines of lat/long)
-graticule_lons <- seq(-180, 180, 15)
-graticule_lats <- seq(-90, 90, 15)
-
-# Common settings
-width=17
-height=11
-bgcolor="white"
+plot_annotations <- function() {
+  if (show.graticule)
+    plot(graticule(lons, lats, proj = proj), add=TRUE, col = "lightgray")
+  if (show.box)
+    box(col="red")
+  if (show.spine)
+    abline(v=grconvertX(8.5*72, from = "device", to = "user"))
+}
 
 ################################################################################
 # Plot attempt #1 - Gall-Peters centered on 25 degrees W
@@ -46,14 +72,12 @@ proj <- "+proj=cea +lon_0=25w +x_0=0 +y_0=0 +lat_ts=45 +ellps=WGS84 +datum=WGS84
 wrld_tx <- slice_world(wrld_simpl, 155)
 wrld_tx <- spTransform(wrld_tx, CRS(proj))
 
-pdf("gall-peters-25w.pdf", width=width, height=height, bg=bgcolor)
+plot.device(paste0(output_folder, "gall-peters-25w", plot.fn.ext), width=width, height=height, bg=bgcolor)
 par(mai=c(0,0,0,0), oma=c(0,0,0,0)) #bltr
 plot(wrld_tx, col=ternaryColors, lwd=0.3)
 
 # Plot graticule, box and book spine, just so we can see how our projection looks
-plot(graticule(lons, lats, proj = proj), add=TRUE, col = "lightgray")
-box(col="red")
-abline(v=grconvertX(8.5*72, from = "device", to = "user"))
+plot_annotations()
 dev.off()
 
 ################################################################################
@@ -65,14 +89,12 @@ proj <- "+proj=cea +lon_0=25w +x_0=0 +y_0=0 +lat_ts=40 +ellps=WGS84 +datum=WGS84
 wrld_tx <- slice_world(wrld_simpl, 155)
 wrld_tx <- spTransform(wrld_tx, CRS(proj))
 
-pdf("gall-peters-40-25w.pdf", width=width, height=height, bg=bgcolor)
+plot.device(paste0(output_folder, "gall-peters-40-25w", plot.fn.ext), width=width, height=height, bg=bgcolor)
 par(mai=c(0,0,0,0), oma=c(0,0,0,0)) #bltr
 plot(wrld_tx, col=ternaryColors, lwd=0.3)
 
 # Plot graticule, box and book spine, just so we can see how our projection looks
-plot(graticule(lons, lats, proj = proj), add=TRUE, col = "lightgray")
-box(col="red")
-abline(v=grconvertX(8.5*72, from = "device", to = "user"))
+plot_annotations()
 dev.off()
 
 ################################################################################
@@ -82,14 +104,12 @@ dev.off()
 proj <- "+proj=wintri +lon_0=0w"
 wrld_tx <- spTransform(wrld_simpl, CRS(proj))
 
-pdf("winkel-tripel.pdf", width=width, height=height, bg=bgcolor)
+plot.device(paste0(output_folder, "winkel-tripel", plot.fn.ext), width=width, height=height, bg=bgcolor)
 par(mai=c(0,1.75,0,0), oma=c(0,0,0,0)) #bltr
 plot(wrld_tx, col=ternaryColors, lwd=0.3)
 
 # Plot graticule, box and book spine, just so we can see how our projection looks
-plot(graticule(lons, lats, proj = proj), add=TRUE, col = "lightgray")
-box(col="red")
-abline(v=grconvertX(8.5*72, from = "device", to = "user"))
+plot_annotations()
 dev.off()
 
 ################################################################################
@@ -100,12 +120,10 @@ proj <- "+proj=wintri +lon_0=25w"
 wrld_tx <- slice_world(wrld_simpl, 155)
 wrld_tx <- spTransform(wrld_tx, CRS(proj))
 
-pdf("winkel-tripel-25w.pdf", width=width, height=height, bg=bgcolor)
+plot.device(paste0(output_folder, "winkel-tripel-25w", plot.fn.ext), width=width, height=height, bg=bgcolor)
 par(mai=c(0,0,0,0), oma=c(0,0,0,0)) #bltr
 plot(wrld_tx, col=ternaryColors, lwd=0.3)
 
 # Plot graticule, box and book spine, just so we can see how our projection looks
-plot(graticule(lons, lats, proj = proj), add=TRUE, col = "lightgray")
-box(col="red")
-abline(v=grconvertX(8.5*72, from = "device", to = "user"))
+plot_annotations()
 dev.off()

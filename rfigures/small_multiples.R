@@ -1,7 +1,6 @@
 library(WDI)
 library(svglite)
 library(Cairo)
-library(countrycode)
 library(tidyr)
 library(dplyr)
 library(ggplot2)

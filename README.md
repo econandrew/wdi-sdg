@@ -1,3 +1,3 @@
 # wdi-sdg
 
-R script to generate SVG maps for use in print/PDF edition of [World Development Indicators](http://data.worldbank.org/products/wdi)  
+R scripts to generate R figures for print purposes based on the WDI. Note: the data may not be accurate or accurately represented - this is purely to test graphical output.

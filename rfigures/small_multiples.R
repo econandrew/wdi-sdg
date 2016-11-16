@@ -22,8 +22,8 @@ bgcolor="white"
 show.box = F
 show.spine = F
 
-plot.device <- pdf # pdf devSVG svg
-plot.fn.ext <- '.pdf'
+plot.device <- svg # pdf devSVG svg
+plot.fn.ext <- '.svg'
 
 ################################################################################
 # Setup

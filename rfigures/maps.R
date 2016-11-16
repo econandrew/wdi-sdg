@@ -28,8 +28,8 @@ show.graticule = F
 show.box = F
 show.spine = F
 
-plot.device <- svg
-plot.fn.ext <- '.svg'
+plot.device <- pdf #svg
+plot.fn.ext <- '.pdf' #.svg
 
 ################################################################################
 # Setup

@@ -18,8 +18,8 @@ width=8.5
 height=11
 bgcolor="white"
 
-plot.device <- pdf # pdf devSVG svg
-plot.fn.ext <- '.pdf'
+plot.device <- devSVG # pdf devSVG svg
+plot.fn.ext <- '.svg'
 
 ################################################################################
 # Setup
@@ -72,7 +72,7 @@ ggplot(pop, aes(x=age, y=proportion, fill=sex)) +
   theme_minimal() +
   theme(axis.title=element_blank(),
         axis.text.x=element_blank(),
-        axis.text.y=element_text(color = "grey", size=3),
+        axis.text.y=element_text(color = "darkgrey", size=3),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         legend.position="none",
